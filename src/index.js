@@ -106,20 +106,35 @@ class Reader extends Component {
   }
 
   initiate(props = this.props) {
-    const { onError, facingMode, chooseDeviceId } = props
+    const { onError, facingMode, cameraId } = props
 
-    getDeviceId(facingMode, chooseDeviceId)
-      .then(deviceId => {
-        return navigator.mediaDevices.getUserMedia({
-          video: {
-            deviceId,
-            width: { min: 360, ideal: 1280, max: 1920 },
-            height: { min: 240, ideal: 720, max: 1080 },
-          },
-        })
-      })
-      .then(this.handleVideo)
-      .catch(onError)
+    // Check browser facingMode constraint support
+    // Firefox ignores facingMode or deviceId constraints
+    const isFirefox = /firefox/i.test(navigator.userAgent)
+    const isSafari = !!navigator.userAgent.match(/Version\/[\d.]+.*Safari/)
+    
+    if (navigator.mediaDevices && typeof navigator.mediaDevices.getSupportedConstraints === 'function') {
+      const supported = navigator.mediaDevices.getSupportedConstraints()
+      const constraints = {}
+
+      if (supported.facingMode) {
+        constraints.facingMode = { ideal: facingMode }
+      }
+      if (supported.frameRate) {
+        constraints.frameRate = { ideal: 30, min: 30 }
+      }
+
+      const vConstraintsPromise = (isSafari || isFirefox)
+        ? Promise.resolve(props.constraints || constraints)
+        : getDeviceId(facingMode, undefined, cameraId).then(deviceId => Object.assign({}, { deviceId }, props.constraints))
+
+      vConstraintsPromise
+        .then(video => navigator.mediaDevices.getUserMedia({ video }))
+        .then(this.handleVideo)
+        .catch(onError)
+    } else {
+      console.error('browser does not support "navigator.mediaDevices"')
+    }
   }
 
   handleVideo(stream) {
@@ -292,7 +307,7 @@ Reader.propTypes = {
   onLoad: PropTypes.func,
   onImageLoad: PropTypes.func,
   delay: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
-  facingMode: PropTypes.oneOf(['rear', 'front']),
+  facingMode: PropTypes.oneOf(['environment', 'front']),
   legacyMode: PropTypes.bool,
   maxImageSize: PropTypes.number,
   style: PropTypes.any,
@@ -303,7 +318,7 @@ Reader.propTypes = {
 Reader.defaultProps = {
   delay: 500,
   maxImageSize: 1000,
-  facingMode: 'rear',
+  facingMode: 'environment',
 }
 
 export default Reader
