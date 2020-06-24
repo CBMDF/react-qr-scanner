@@ -12531,7 +12531,7 @@ webpack@^4.33.0, webpack@^4.38.0:
     watchpack "^1.6.1"
     webpack-sources "^1.4.1"
 
-webrtc-adapter@^7.5.1:
+webrtc-adapter@^7.6.3:
   version "7.6.3"
   resolved "https://registry.yarnpkg.com/webrtc-adapter/-/webrtc-adapter-7.6.3.tgz#4752338bbc411caa3f71da3a5de46149690ddcbe"
   integrity sha512-DCMiS6cy29PknSuBz779twM6/VsPdoQNAU/I/q4VCEVSlCQ88xiwqGD5/osVO6UMyXCnTBiOl8kd+1cJi6Pkig==
